@@ -1,0 +1,41 @@
+### Cadastro de Usuário
+
+POST {{baseUrl}}/auth/sign-up/email HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "email": "{{userEmail}}",
+  "name": "Usuario Teste",
+  "password": "Test@123",
+  "rememberMe": true
+}
+
+
+### Login
+
+POST {{baseUrl}}/auth/sign-in/email HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "email": "{{userEmail}}",
+  "password": "Test@123"
+}
+
+> {%
+  const setCookies = response.headers.valueOf("set-cookie");
+  if (setCookies) {
+    const cookies = Array.isArray(setCookies) ? setCookies : [setCookies];
+  
+    const cookieValues = cookies.map((c) => c.split(";")[0]).join("; ");
+    client.global.set("authCookies", cookieValues);
+  }
+%}
+
+
+### Session
+
+GET {{baseUrl}}/auth/get-session HTTP/1.1
+Cookie: {{authCookies}}
+Authorization: Bearer {{authToken}}
