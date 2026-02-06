@@ -15,6 +15,20 @@
       "when": 1770077949008,
       "tag": "0001_melodic_barracuda",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1770335213153,
+      "tag": "0002_aspiring_the_fury",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1770336769774,
+      "tag": "0003_chunky_nightcrawler",
+      "breakpoints": true
     }
   ]
 }
