@@ -8,6 +8,7 @@ import {
 	timestamp,
 	uuid,
 } from 'drizzle-orm/pg-core';
+import { bid } from './bids';
 import { product } from './products';
 
 export const auctionStatusEnum = pgEnum('auction_status', [
@@ -66,10 +67,11 @@ export const auction = pgTable(
 
 export const auctionsRelations = relations(
 	auction,
-	({ one }) => ({
+	({ one, many }) => ({
 		product: one(product, {
 			fields: [auction.productId],
 			references: [product.id],
 		}),
+		bid: many(bid),
 	}),
 );
