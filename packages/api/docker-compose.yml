@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     container_name: flashbid_pg
     restart: always
     environment:
@@ -10,7 +10,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - pg_flashbid_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U user -d flashbid"]
       interval: 5s
@@ -18,13 +18,13 @@ services:
       retries: 5
 
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
     container_name: flashbid_redis
     restart: always
     ports:
       - "6378:6379"
     volumes:
-      - redis_data:/data
+      - redis_flashbid_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -32,5 +32,5 @@ services:
       retries: 5
 
 volumes:
-  pg_data:
-  redis_data:
+  pg_flashbid_data:
+  redis_flashbid_data:

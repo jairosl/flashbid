@@ -1,7 +1,8 @@
-import { openapi } from '@elysiajs/openapi';
+import cors from '@elysiajs/cors';
+import openapi from '@elysiajs/openapi';
 import { Elysia } from 'elysia';
 import { OpenAPI } from '@/lib/auth';
-import { betterAuthPluguin } from './lib/http/pluguins/better-auth';
+import { userRoutes } from './routes/user';
 
 const app = new Elysia()
 	.use(
@@ -12,11 +13,16 @@ const app = new Elysia()
 			},
 		}),
 	)
-	.use(betterAuthPluguin)
+	.use(
+		cors({
+			origin: 'http://localhost:3000',
+			methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+			credentials: true,
+			allowedHeaders: ['Content-Type', 'Authorization'],
+		}),
+	)
+	.use(userRoutes)
 	.get('/', () => 'Hello Elysia')
-	.get('/user', ({ user }) => user, {
-		auth: true,
-	})
 	.listen(process.env.PORT || 8080);
 
 console.log(
