@@ -4,6 +4,10 @@
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"dev": "bun run --watch src/index.ts",
+		"build": "bun build src/index.ts --outdir dist --target bun",
+		"build:prod": "bun build src/index.ts --outdir dist --target bun --minify --sourcemap",
+		"build:bin": "bun build src/index.ts --compile --minify --sourcemap --outfile dist/api",
+		"start": "bun run dist/index.js",
 		"db:generate": "bun --env-file .env --bun drizzle-kit generate",
 		"db:migrate": "bun --env-file .env --bun drizzle-kit migrate",
 		"db:studio": "bun --env-file .env --bun drizzle-kit studio"

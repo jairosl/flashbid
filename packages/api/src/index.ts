@@ -1,27 +1,19 @@
-import cors from '@elysiajs/cors';
-import openapi from '@elysiajs/openapi';
 import { Elysia } from 'elysia';
-import { OpenAPI } from '@/lib/auth';
-import { userRoutes } from './routes/user';
+import { corsConfig, openapiConfig } from './config';
+import { errorPlugin } from './lib/http/plugins';
+import { authRoutes } from './modules/auth';
+import { productsRoutes } from './modules/products';
+import { storageRoutes } from './modules/storage';
+import { usersRoutes } from './modules/users';
 
 const app = new Elysia()
-	.use(
-		openapi({
-			documentation: {
-				components: await OpenAPI.components,
-				paths: await OpenAPI.getPaths(),
-			},
-		}),
-	)
-	.use(
-		cors({
-			origin: 'http://localhost:3000',
-			methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-			credentials: true,
-			allowedHeaders: ['Content-Type', 'Authorization'],
-		}),
-	)
-	.use(userRoutes)
+	.use(openapiConfig)
+	.use(corsConfig)
+	.use(errorPlugin)
+	.use(authRoutes)
+	.use(usersRoutes)
+	.use(productsRoutes)
+	.use(storageRoutes)
 	.get('/', () => 'Hello Elysia')
 	.listen(process.env.PORT || 8080);
 

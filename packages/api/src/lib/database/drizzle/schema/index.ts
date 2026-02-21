@@ -1,5 +1,6 @@
 import { account } from './accounts';
 import { auction } from './auctions';
+import { image } from './images';
 import { product } from './products';
 import { session } from './sessions';
 import { user } from './users';
@@ -10,6 +11,17 @@ export const schema = {
 	session,
 	account,
 	verification,
+	image,
+	product,
+	auction,
+};
+
+export {
+	user,
+	session,
+	account,
+	verification,
+	image,
 	product,
 	auction,
 };

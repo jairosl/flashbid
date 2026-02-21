@@ -1,39 +1,27 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: Docs Elysia + betterAuth */
-import { betterAuth } from 'better-auth';
-import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { openAPI } from 'better-auth/plugins';
-import { db } from '@/lib/database/drizzle/client';
+import Elysia from 'elysia';
+import { auth } from '@/modules/auth/client';
 
-export const auth = betterAuth({
-	basePath: '/auth',
-	plugins: [openAPI()],
-	database: drizzleAdapter(db, {
-		provider: 'pg',
-	}),
-	advanced: {
-		database: {
-			generateId: false,
+export const authPlugin = new Elysia({
+	name: 'better-auth',
+})
+	.mount(auth.handler)
+	.macro({
+		auth: {
+			async resolve({ status, request: { headers } }) {
+				const session = await auth.api.getSession({
+					headers,
+				});
+
+				if (!session) return status(401);
+
+				return {
+					user: session.user,
+					session: session.session,
+				};
+			},
 		},
-	},
-	emailAndPassword: {
-		enabled: true,
-		autoSignIn: true,
-		password: {
-			hash: (password: string) =>
-				Bun.password.hash(password),
-			verify: ({ password, hash }) =>
-				Bun.password.verify(password, hash),
-		},
-		requireEmailVerification: false,
-	},
-	session: {
-		expiresIn: 60 * 60 * 24 * 7,
-		cookieCache: {
-			enabled: true,
-			maxAge: 60 * 5,
-		},
-	},
-});
+	});
 
 let _schema: ReturnType<
 	typeof auth.api.generateOpenAPISchema
