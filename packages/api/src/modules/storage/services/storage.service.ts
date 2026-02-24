@@ -17,7 +17,7 @@ export abstract class StorageService {
 	/**
 	 * Deleta um arquivo
 	 */
-	abstract deleteFile(filePath: string): Promise<void>;
+	abstract deleteFile(imageId: string, ownerId: string): Promise<void>;
 
 	/**
 	 * Obtém URL pública de um arquivo

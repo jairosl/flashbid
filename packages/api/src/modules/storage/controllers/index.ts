@@ -24,12 +24,12 @@ export class StorageController {
 		body: UploadFileDto;
 		user: { id: string };
 	}): Promise<UploadFileResponseDto> => {
-		const { file, folder } = body;
+		const { file } = body;
 
 		const result = await this.storageService.uploadFile(
 			file,
 			{
-				folder: folder || 'products',
+				folder: 'products',
 				ownerId: user.id,
 			},
 		);
@@ -42,10 +42,15 @@ export class StorageController {
 	 */
 	deleteFile = async ({
 		params,
+		user,
 	}: {
 		params: DeleteFileDto;
+		user: { id: string };
 	}) => {
-		await this.storageService.deleteFile(params.path);
+		await this.storageService.deleteFile(
+			params.imageId,
+			user.id,
+		);
 
 		return {
 			success: true,

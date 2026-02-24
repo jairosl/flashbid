@@ -1,10 +1,10 @@
 import { randomUUIDv7 } from 'bun';
+import { and, eq } from 'drizzle-orm';
 import { db } from '@/lib/database/drizzle/client';
 import { image } from '@/lib/database/drizzle/schema';
 import { StorageError } from '@/modules/common/errors';
 import { STORAGE_BUCKET, supabase } from '../client';
 import type { UploadFileResponseDto } from '../dto';
-import { StorageModuleError } from '../errors';
 import type { UploadOptions } from '../types';
 import { StorageService } from './storage.service';
 
@@ -18,7 +18,7 @@ export class SupabaseStorageService extends StorageService {
 	): Promise<UploadFileResponseDto> {
 		try {
 			if (!options.ownerId) {
-				throw new StorageModuleError(
+				throw new StorageError(
 					'Missing ownerId for image persistence',
 					'OWNER_ID_REQUIRED',
 					400,
@@ -38,13 +38,11 @@ export class SupabaseStorageService extends StorageService {
 				.from(STORAGE_BUCKET)
 				.upload(filePath, file, {
 					upsert: options.upsert ?? false,
-					contentType:
-						options.contentType ||
-						this.getContentType(file),
+					contentType: options.contentType || this.getContentType(file),
 				});
 
 			if (error) {
-				throw new StorageModuleError(
+				throw new StorageError(
 					`Failed to upload file: ${error.message}`,
 					'UPLOAD_FAILED',
 					400,
@@ -74,7 +72,7 @@ export class SupabaseStorageService extends StorageService {
 				imageId: imageRecord.id,
 			};
 		} catch (error) {
-			if (error instanceof StorageModuleError) {
+			if (error instanceof StorageError) {
 				throw error;
 			}
 			throw new StorageError(
@@ -86,10 +84,22 @@ export class SupabaseStorageService extends StorageService {
 		}
 	}
 
-	async deleteFile(filePath: string): Promise<void> {
+	async deleteFile(imageId: string, ownerId: string): Promise<void> {
+		const [imageRecord] = await db
+			.select({
+				id: image.id,
+				path: image.url,
+			})
+			.from(image)
+			.where(and(eq(image.id, imageId), eq(image.ownerId, ownerId)));
+
+		if (!imageRecord) {
+			throw new StorageError('Image not found', 'IMAGE_NOT_FOUND', 404);
+		}
+
 		const { error } = await supabase.storage
 			.from(STORAGE_BUCKET)
-			.remove([filePath]);
+			.remove([imageRecord.path]);
 
 		if (error) {
 			throw new StorageError(
@@ -99,6 +109,8 @@ export class SupabaseStorageService extends StorageService {
 				error,
 			);
 		}
+
+		await db.delete(image).where(eq(image.id, imageRecord.id));
 	}
 
 	getPublicUrl(filePath: string): string {

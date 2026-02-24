@@ -35,7 +35,7 @@ export const storageRoutes = new Elysia({
 	})
 
 	// Deletar arquivo
-	.delete('/:path', controller.deleteFile, {
+	.delete('/:imageId', controller.deleteFile, {
 		params: deleteFileDto,
 		detail: {
 			tags: ['Storage'],

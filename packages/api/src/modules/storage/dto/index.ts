@@ -13,7 +13,6 @@ export const uploadFileDto = t.Object({
 		],
 		maxSize: 2 * 1024 * 1024, // 2MB
 	}),
-	folder: t.Optional(t.String()),
 });
 
 export type UploadFileDto = Static<typeof uploadFileDto>;
@@ -36,7 +35,7 @@ export type UploadFileResponseDto = Static<
  * DTO para deletar arquivo
  */
 export const deleteFileDto = t.Object({
-	path: t.String({ minLength: 1 }),
+	imageId: t.String({ format: 'uuid' }),
 });
 
 export type DeleteFileDto = Static<typeof deleteFileDto>;
