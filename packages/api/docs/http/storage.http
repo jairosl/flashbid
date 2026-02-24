@@ -1,0 +1,31 @@
+### Upload de Arquivo
+
+# Atualize o caminho abaixo para um arquivo de imagem existente na sua máquina.
+
+POST {{baseUrl}}/storage/upload HTTP/1.1
+Authorization: Bearer {{authToken}}
+Cookie: {{authCookies}}
+Content-Type: multipart/form-data; boundary=StorageBoundary
+
+--StorageBoundary
+Content-Disposition: form-data; name="file"; filename="sample.jpg"
+Content-Type: image/jpg
+
+< ../assets/sample.jpg
+--StorageBoundary--
+
+> {%
+  const body = response.body;
+  if (body?.imageId) {
+    client.global.set("storageImageId", body.imageId);
+  }
+%}
+
+
+### Deletar Arquivo
+
+# Usa o imageId capturado no upload anterior.
+
+DELETE {{baseUrl}}/storage/{{storageImageId}} HTTP/1.1
+Authorization: Bearer {{authToken}}
+Cookie: {{authCookies}}
