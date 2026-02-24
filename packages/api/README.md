@@ -1,42 +1,67 @@
-# 🚀 FlashBid API
+# FlashBid API
 
-API REST construída com **Elysia.js** + **Bun** para o sistema de leilões FlashBid.
+API backend do FlashBid, plataforma focada em fluxos de produtos e leilões.
 
-## 📚 Documentação Completa
+Este pacote entrega autenticação, contexto de usuário, operações de produto e storage de mídia, com arquitetura preparada para evoluir sem acoplamento excessivo.
 
-Para documentação detalhada sobre arquitetura, padrões e boas práticas, consulte:
+## Overview
+A API foi estruturada para resolver problemas de engenharia de software além da implementação de endpoints:
 
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Documentação completa da arquitetura
+- isolar comportamento de negócio de framework/provedor
+- reduzir acoplamento com serviços externos (auth/storage/database)
+- permitir evolução incremental sem refatoração massiva
 
-## 🎯 Stack Tecnológica
+Para detalhes de camadas, contratos e convenções arquiteturais:
 
-- **Runtime**: Bun
-- **Framework**: Elysia.js
-- **ORM**: Drizzle ORM
-- **Database**: PostgreSQL
-- **Auth**: Better Auth
-- **Documentation**: OpenAPI/Swagger
+- [ARCHITECTURE.md](./ARCHITECTURE.md)
 
-## 📁 Estrutura do Projeto
+## Tech Stack
 
-```
-src/
-├── config/              # Configurações centralizadas (CORS, OpenAPI)
-├── lib/                 # Bibliotecas compartilhadas
-│   ├── database/        # Drizzle ORM + Schemas
-│   └── http/            # Plugins Elysia
-├── modules/             # Módulos de domínio (DDD)
-│   ├── auth/            # Autenticação (Better Auth)
-│   ├── storage/         # Upload de arquivos (Supabase)
-│   ├── users/           # Gestão de usuários
-│   ├── products/        # Gestão de produtos
-│   └── common/          # Tipos/erros/constantes compartilhados
-│       ├── errors/
-│       ├── types/
-│       └── constants/
-```
+- Runtime: Bun
+- Framework HTTP: Elysia
+- Autenticação: Better Auth
+- Banco de dados: PostgreSQL
+- ORM: Drizzle ORM
+- Storage de objetos: Supabase Storage
+- Documentação de API: OpenAPI com `@elysiajs/openapi`
+- Infra local: Docker Compose (PostgreSQL + Redis)
 
-## 🚀 Quick Start
+## Decisões de Engenharia (Alto Nível)
+
+### 1. Desacoplamento de provedores por contrato
+Problema:
+Trocar provedor (por exemplo storage) pode causar refatoração em cadeia.
+
+Solução:
+Módulos usam contrato abstrato de service + implementação concreta + factory. O módulo `storage` é a referência atual.
+
+### 2. Consistência e segurança na borda do sistema
+Problema:
+Validação inconsistente e erros não normalizados causam instabilidade em produção.
+
+Solução:
+Validação na borda via DTO/route, normalização de erros em camada compartilhada e contexto de autenticação resolvido por plugin/macro antes dos handlers protegidos.
+
+### 3. Infra pronta para processamento assíncrono
+Problema:
+Parte dos workloads tende a ser assíncrona (notificações, pós-processamento, jobs).
+
+Solução:
+A infra local já provisiona Redis para suportar workloads com fila na evolução da aplicação, sem quebrar contratos HTTP atuais.
+
+## Módulos Atuais
+
+- `auth`: integração Better Auth e endpoints de autenticação
+- `users`: dados do usuário autenticado
+- `products`: criação de produto (em evolução)
+- `storage`: upload/remoção de imagem com validação de ownership
+
+## Como Rodar
+
+### Pré-requisitos
+
+- Bun instalado
+- Docker + Docker Compose instalados
 
 ### 1. Instalar dependências
 
@@ -44,193 +69,62 @@ src/
 bun install
 ```
 
-### 2. Configurar variáveis de ambiente
+### 2. Configurar ambiente
 
 ```bash
 cp .env.example .env
-# Edite o arquivo .env com suas configurações
 ```
 
-### 3. Iniciar banco de dados (Docker)
+Preencha as variáveis obrigatórias no `.env` (database, auth e storage).
+
+### 3. Subir infraestrutura
 
 ```bash
 docker-compose up -d
 ```
 
-### 4. Executar migrations
+Serviços locais:
+
+- PostgreSQL em `localhost:5434`
+- Redis em `localhost:6378`
+
+### 4. Executar migrações
 
 ```bash
 bun run db:generate
 bun run db:migrate
 ```
 
-### 5. Iniciar servidor de desenvolvimento
+### 5. Iniciar API
 
 ```bash
 bun run dev
 ```
 
-A API estará disponível em `http://localhost:8080`
+URL padrão: `http://localhost:8080`
 
-## 📝 Scripts Disponíveis
+## Documentação e Exploração da API
 
-```bash
-bun run dev           # Inicia servidor em modo watch
-bun run db:generate   # Gera migrations do Drizzle
-bun run db:migrate    # Executa migrations
-bun run db:studio     # Abre Drizzle Studio (GUI do banco)
-```
+- OpenAPI UI: `http://localhost:8080/openapi`
+- Exemplos HTTP:
+  - `docs/http/auth.http`
+  - `docs/http/storage.http`
+- Variáveis do HTTP Client:
+  - `docs/http-client.env.json`
 
-## 📖 Documentação da API
-
-Acesse a documentação interativa (Swagger):
-
-- **Swagger UI**: `http://localhost:8080/openapi`
-
-## 🏗️ Padrões de Organização
-
-### Estrutura de um Módulo
-
-Cada módulo segue um padrão com subpastas organizadas (algumas são opcionais):
-
-```
-module-name/
-├── client/                     # Clientes externos (opcional)
-│   └── index.ts
-├── dto/                        # Validações Elysia (opcional)
-│   └── index.ts
-├── services/                   # Lógica de negócio (opcional)
-│   ├── {module}.service.ts     # Abstract class
-│   ├── {module}-impl.service.ts  # Implementação
-│   └── index.ts                # Factory
-├── controllers/                # Handlers HTTP (opcional)
-│   └── index.ts
-├── routes/                     # Definição de rotas
-│   └── index.ts
-├── types/                      # Tipos TypeScript (opcional)
-│   └── index.ts
-└── index.ts                    # Exports públicos
-```
-
-### Camadas da Aplicação
-
-```
-Routes → DTOs → Controllers → Services (Abstract) → Implementation → Database/Client
-
-Obs.: o módulo de Auth é uma exceção, pois o Better Auth expõe as rotas principais via plugin. Mantemos `client/`, `controllers/` e `routes/` para endpoints auxiliares e organização.
-```
-
-### Princípios
-
-- ✅ **Abstract Classes**: Services são abstratos para fácil troca de implementação
-- ✅ **DTOs**: Validação separada usando Elysia Type System
-- ✅ **Erros Centralizados**: Classes de erro em `modules/common/errors/`
-- ✅ **Error Handling Global**: Plugin Elysia em `lib/http/plugins/error.ts`
-- ✅ **Factory Pattern**: Funções `create*Service()` para instanciar services
-- ✅ **Barrel Exports**: Apenas API pública exportada via `index.ts`
-
-## 🔐 Autenticação
-
-A API usa **Better Auth** para autenticação. As rotas principais são expostas automaticamente via plugin com base em `basePath: /auth`.
-
-Endpoints adicionais desta API:
-- `GET /auth/session` - Retorna a sessão atual (helper)
-
-## 🗄️ Database
-
-### Schemas Principais
-
-- **user**: Usuários do sistema
-- **product**: Produtos para leilão
-- **auction**: Leilões ativos/finalizados
-- **bid**: Lances em leilões
-
-### Gerenciar Database
+## Scripts Úteis
 
 ```bash
-# Gerar nova migration após alterar schema
+bun run dev
+bun run build
+bun run build:prod
 bun run db:generate
-
-# Aplicar migrations
 bun run db:migrate
-
-# Abrir interface visual do banco
 bun run db:studio
 ```
 
-## 🔧 Desenvolvimento
+## Evolução Técnica
 
-### Adicionar Novo Módulo
-
-1. Criar estrutura de pastas:
-   ```bash
-   mkdir -p src/modules/nome-modulo/{dto,services,controllers,routes,types}
-   ```
-
-2. Criar arquivos seguindo o padrão:
-   - `types/index.ts` - Interfaces do domínio
-   - `dto/index.ts` - Validações Elysia
-   - `services/{module}.service.ts` - Abstract class
-   - `services/{module}-db.service.ts` - Implementação
-   - `services/index.ts` - Factory
-   - `controllers/index.ts` - Handlers HTTP
-   - `routes/index.ts` - Rotas
-   - `index.ts` - Exports públicos
-
-3. Registrar rotas em `src/index.ts`
-
-Exemplo completo em [ARCHITECTURE.md](./ARCHITECTURE.md#-como-adicionar-um-novo-módulo)
-
-## 📦 Módulos Existentes
-
-### Auth (`/auth/*`)
-
-- Autenticação via Better Auth (rotas principais expostas pelo plugin)
-- `GET /auth/session` - Sessão atual (rota auxiliar)
-
-### Storage (`/upload/*`)
-
-Upload de arquivos usando Supabase Storage com abstração completa.
-
-- `POST /upload` - Upload de arquivo (autenticado)
-- `DELETE /upload/:path` - Deletar arquivo (autenticado)
-
-**Exemplo de troca de implementação:**
-```typescript
-// Trocar de Supabase para S3 facilmente
-export const createStorageService = () => {
-  if (process.env.STORAGE_PROVIDER === 's3') {
-    return new S3StorageService();
-  }
-  return new SupabaseStorageService();
-};
-```
-
-### Users (`/users/*`)
-
-Gestão de usuários com service abstrato.
-
-- `GET /users/` - Dados do usuário autenticado
-
-### Products (`/products/*`)
-
-Gestão de produtos para leilão.
-
-- `POST /products/` - Criar produto (autenticado)
-
-## 🌐 CORS
-
-Configurado para aceitar requisições de:
-
-- `http://localhost:3000` (Frontend)
-
-Edite em `src/config/cors.ts` para adicionar outras origens.
-
-## 📚 Recursos
-
-- [Elysia.js Docs](https://elysiajs.com)
-- [Better Auth Docs](https://better-auth.com)
-- [Drizzle ORM Docs](https://orm.drizzle.team)
-- [Bun Docs](https://bun.sh)
-
----
+- A arquitetura é incremental: manter simples onde ainda é simples.
+- Com aumento de complexidade, a base permite evoluir para use-cases explícitos, workers com fila e observabilidade mais forte.
+- O foco é decisão de engenharia sustentável, não acoplamento ao framework.
