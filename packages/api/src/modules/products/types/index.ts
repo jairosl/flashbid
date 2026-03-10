@@ -4,12 +4,10 @@
 export interface Product {
 	id: string;
 	name: string;
-	description?: string;
-	startingPrice: number;
-	currentPrice?: number;
-	imageId?: string;
-	sellerId: string;
-	status: 'draft' | 'active' | 'sold' | 'cancelled';
+	description?: string | null;
+	imageId?: string | null;
+	imageUrl?: string | null;
+	ownerId: string;
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -17,6 +15,5 @@ export interface Product {
 export interface CreateProductData {
 	name: string;
 	description?: string;
-	startingPrice: number;
-	imageId?: string;
+	image?: File | Blob;
 }

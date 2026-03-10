@@ -1,19 +1,18 @@
 import { eq } from 'drizzle-orm';
+import { injectable } from 'inversify';
 import { db } from '@/lib/database/drizzle/client';
 import { user } from '@/lib/database/drizzle/schema';
 import { NotFoundError } from '@/modules/common/errors';
 import type { UserProfile } from '../types';
-import { UsersService } from './users.service';
+import type { UsersService } from './users.service';
 
 /**
  * Implementação do UsersService usando Drizzle ORM
  */
-export class UsersDbService extends UsersService {
+@injectable()
+export class UsersDbService implements UsersService {
 	async getMe(userId: string): Promise<UserProfile | null> {
-		const [userData] = await db
-			.select()
-			.from(user)
-			.where(eq(user.id, userId));
+		const [userData] = await db.select().from(user).where(eq(user.id, userId));
 
 		if (!userData) {
 			throw new NotFoundError('User not found');

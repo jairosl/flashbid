@@ -1,5 +1,13 @@
 # flashbid
 
+Este é um sistema de leilão relâmpago desenvolvido como um monorepo.
+
+## 📖 Documentação
+
+- [BDD - Histórias de Usuário e Cenários de Aceitação](./BDD.md)
+
+## Instalação e Execução
+
 To install dependencies:
 
 ```bash

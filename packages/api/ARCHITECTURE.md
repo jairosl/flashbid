@@ -1,134 +1,121 @@
-# Guia de Arquitetura da API
+# API Architecture & Module Pattern
 
-## Objetivo
-Este documento define os princípios de arquitetura do `packages/api`, os limites entre camadas e as convenções esperadas para novos módulos.
+This document defines the standard structure for modules in the Flashbid API. Every module must follow the **Routes -> Controller -> Service -> Repository** pattern, utilizing **InversifyJS** for Dependency Injection.
 
-A implementação atual é pragmática e incremental. O módulo `storage` é a referência do modelo de camadas vigente e ainda será evoluído (por exemplo, com use-cases explícitos quando a complexidade aumentar).
+## 1. Directory Structure
 
-## Direção Arquitetural
-A API segue uma arquitetura modular inspirada em:
+A generic module (e.g., `products`) should look like this:
 
-- Clean Architecture (dependências apontando para dentro)
-- Hexagonal Architecture (ports and adapters)
-- Organização por domínio (módulos por contexto de negócio)
-
-Na prática, cada módulo separa responsabilidade de transporte HTTP, regra de negócio e integração com infraestrutura.
-
-## Modelo de Camadas
-Fluxo atual por módulo:
-
-`Routes -> DTO -> Controller -> Service Contract -> Service Implementation -> External Systems`
-
-- `Routes`: endpoints HTTP, middlewares e metadados OpenAPI
-- `DTO`: schema de entrada/saída e validação em runtime
-- `Controller`: orquestração da requisição; sem lógica pesada
-- `Service Contract`: contrato abstrato (porta)
-- `Service Implementation`: adaptador concreto para DB/SDK/provedor
-- `External Systems`: PostgreSQL, Supabase Storage, Better Auth etc.
-
-### Regra de Dependência
-As dependências devem seguir para dentro:
-
-- routes dependem de controllers e DTOs
-- controllers dependem de contratos de service
-- contratos dependem apenas de tipos de domínio
-- implementações dependem de framework/SDK e satisfazem contratos
-
-Camadas superiores não devem conhecer detalhes de infraestrutura.
-
-## Storage como Referência
-O módulo `storage` exemplifica o padrão atual.
-
-### Exemplo Genérico de Requisição
-1. A rota recebe `POST /storage/upload` com multipart.
-2. O DTO valida tipo e tamanho do arquivo.
-3. O controller aplica política da aplicação (ex.: pasta fixa e owner autenticado).
-4. O controller chama o contrato `StorageService`.
-5. A implementação concreta (`SupabaseStorageService`) faz upload, persiste metadados e retorna resposta.
-
-No delete, a ideia é a mesma:
-
-1. A rota recebe `DELETE /storage/:imageId`.
-2. O DTO valida UUID.
-3. O controller envia `imageId` + id do usuário autenticado.
-4. A implementação valida ownership, remove no storage e remove metadado no banco.
-
-Isso mantém HTTP e provedor isolados da intenção de negócio.
-
-## Estrutura Padrão de Módulo
-Estrutura esperada para módulos de feature (pastas podem ser omitidas quando não fizer sentido):
-
-```txt
-src/modules/<module>/
-  client/        # clientes externos / SDK
-  dto/           # schemas de entrada e saída
-  controllers/   # orquestração HTTP
-  services/      # contratos, implementações e factory
-  routes/        # declaração de endpoints
-  types/         # tipos do módulo
-  errors/        # erros específicos do módulo
-  index.ts       # exportação pública do módulo
+```text
+src/modules/products/
+├── index.ts              # Public exports and types
+├── routes/
+│   └── index.ts          # Elysia routes & DTO validation
+├── controllers/
+│   └── index.ts          # Request handling & DI coordination
+├── services/
+│   ├── products.service.ts  # Interface definition
+│   └── products-db.service.ts # Concrete implementation (Business Logic)
+├── repositories/
+│   ├── products.repository.ts # Interface definition
+│   └── drizzle-products.repository.ts # Concrete implementation (DB Logic)
+├── dto/
+│   └── index.ts          # TypeBox schemas for validation
+└── types/
+    └── index.ts          # Domain interfaces
+├── errors/
+    └── index.ts          # Module specific errors
 ```
 
-## Princípios
+---
 
-### 1. Responsabilidade Única
-Cada camada tem um único motivo para mudar.
+## 2. Layers & Responsibilities
 
-- route muda por transporte HTTP
-- dto muda por contrato/validação
-- controller muda por orquestração
-- service muda por regra de negócio
-- implementação muda por tecnologia/provedor
+### A. Repository (Data Access)
+Responsible **only** for direct database operations. No business logic here.
+- Uses Drizzle ORM.
+- Handles joins and data mapping to domain types.
 
-### 2. Contratos Explícitos
-Use contratos abstratos de service antes da implementação.
+### B. Service (Business Logic)
+Responsible for orchestrating the business rules.
+- Validates constraints (e.g., "Max 5 products per user").
+- Integrates with other services (e.g., `StorageService` for uploads).
+- Calls the Repository for persistence.
 
-Benefícios:
+### C. Controller (HTTP Bridge)
+Responsible for handling the bridge between HTTP and Services.
+- Receives the request context (User, Body, Params).
+- Calls the Service.
+- Returns a standardized `ApiResponse<T>`.
 
-- troca de provedor com menor impacto (Supabase -> S3)
-- testes mais simples com mocks/fakes
-- separação clara entre intenção e integração
+### D. Routes (Entry Point)
+Responsible for defining endpoints and runtime validation.
+- Uses Elysia's `t` (TypeBox) for validation.
+- Attaches documentation (Summary, Tags, Description).
 
-### 3. Validação na Borda
-Toda entrada externa deve ser validada em DTO antes da lógica de negócio.
+---
 
-### 4. Normalização de Erros
-Use hierarquia de erro compartilhada para evitar vazamento de erro cru de SDK e manter respostas consistentes.
+## 3. Standardized Types (Common Module)
 
-### 5. Segurança por Padrão
-Operações de negócio devem validar ownership/autorização na implementação de service, não só na camada HTTP.
+Always prefer using shared types from `@/modules/common/types`:
 
-## Boas Práticas
+- `ApiResponse<T>`: Standard response wrapper `{ success: boolean, data: T }`.
+- `AuthenticatedRequest<TBody, TParams>`: Request context with authenticated `user`.
+- `BaseRequest<TBody, TParams>`: Request context without authentication.
 
-- Mantenha controllers finos; concentre regras em services.
-- Não acesse DB/SDK direto em routes/controllers.
-- Mantenha internals do módulo privados; exporte só API pública no `index.ts`.
-- Prefira retornos determinísticos (evitar formatos ad-hoc por endpoint).
-- Isole configuração de ambiente e integração em `client/` e `config/`.
-- Adicione metadados OpenAPI nas rotas.
-- Use factories (`createXService`) como ponto de composição.
+---
 
-## Lacunas Atuais e Evolução Planejada
-A arquitetura é incremental. Evoluções previstas:
+## 4. Implementation Example
 
-- introduzir use-cases explícitos em domínios mais complexos
-- separar repository/gateway quando necessário
-- adicionar workers assíncronos com fila baseada em Redis
-- padronizar observabilidade (logs estruturados, métricas, correlação)
-- ampliar cobertura de testes de contrato e integração por módulo
+### Service Interface
+```typescript
+export interface ProductsService {
+  create(ownerId: string, data: CreateProductData): Promise<Product>;
+  list(): Promise<Product[]>;
+}
+```
 
-## Checklist de PR (Arquitetura)
+### Controller Implementation
+```typescript
+@injectable()
+export class ProductsController {
+  constructor(@inject(TYPES.ProductsService) private productsService: ProductsService) {}
 
-- Respeitou `Routes -> DTO -> Controller -> Service -> Implementation`
-- DTO validou toda entrada externa
-- Controller não acessa DB/SDK diretamente
-- Existe contrato de service agnóstico de implementação
-- Implementação valida ownership e invariantes
-- Erros usam modelo compartilhado
-- Rotas têm metadados OpenAPI
-- Módulo exporta apenas API pública
+  create = async ({ user, body }: AuthenticatedRequest<CreateProductData>): Promise<ApiResponse<Product>> => {
+    const data = await this.productsService.create(user.id, body);
+    return { success: true, data };
+  };
+}
+```
 
-## Documentos Relacionados
-- Visão geral e setup local: `README.md`
-- Exemplos HTTP: `docs/http/*.http`
+---
+
+## 5. Testing Best Practices
+
+All tests must be written in **English** and focus on both **Happy Path** and **Error Scenarios**.
+
+### Principles:
+- **No `any`**: Use strict typing. Use `vi.Mock` or cast objects only when necessary in tests.
+- **DI in Tests**: Use Inversify `Container` in tests to inject mocks.
+- **Layer Isolation**: 
+  - Test Repositories with DB mocks.
+  - Test Services by mocking Repositories.
+  - Test Controllers by mocking Services.
+
+### Mocking Statics/Global Imports:
+When a module uses static imports (like `bun` or `db`), mock them at the **very top** of your test file:
+
+```typescript
+import { vi } from 'vitest';
+vi.mock('bun', () => ({ randomUUIDv7: vi.fn() }));
+
+import 'reflect-metadata';
+// ... other imports
+```
+
+---
+
+## 6. Linter & Formatting
+We use **Biome**.
+- Use `bun run lint:fix` to fix common issues.
+- Do not disable rules; use `overrides` in `biome.json` if a specific directory (like API with decorators) needs special treatment.

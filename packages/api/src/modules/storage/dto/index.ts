@@ -5,12 +5,7 @@ import { type Static, t } from 'elysia';
  */
 export const uploadFileDto = t.Object({
 	file: t.File({
-		type: [
-			'image/jpeg',
-			'image/png',
-			'image/webp',
-			'image/gif',
-		],
+		type: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
 		maxSize: 2 * 1024 * 1024, // 2MB
 	}),
 });
@@ -27,9 +22,7 @@ export const uploadFileResponseDto = t.Object({
 	imageId: t.Optional(t.String({ format: 'uuid' })),
 });
 
-export type UploadFileResponseDto = Static<
-	typeof uploadFileResponseDto
->;
+export type UploadFileResponseDto = Static<typeof uploadFileResponseDto>;
 
 /**
  * DTO para deletar arquivo

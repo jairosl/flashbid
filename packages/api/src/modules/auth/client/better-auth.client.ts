@@ -18,10 +18,8 @@ export const auth = betterAuth({
 		enabled: true,
 		autoSignIn: true,
 		password: {
-			hash: (password: string) =>
-				Bun.password.hash(password),
-			verify: ({ password, hash }) =>
-				Bun.password.verify(password, hash),
+			hash: (password: string) => Bun.password.hash(password),
+			verify: ({ password, hash }) => Bun.password.verify(password, hash),
 		},
 		requireEmailVerification: false,
 	},

@@ -1,25 +1,21 @@
 import type { CreateProductData, Product } from '../types';
 
 /**
- * Abstract Products Service
- * Permite trocar implementação (DB, API externa, etc) facilmente
+ * Products Service Interface
  */
-export abstract class ProductsService {
+export interface ProductsService {
 	/**
-	 * Cria um novo produto
+	 * Creates a new product
 	 */
-	abstract create(
-		sellerId: string,
-		data: CreateProductData,
-	): Promise<Product>;
+	create(ownerId: string, data: CreateProductData): Promise<Product>;
 
 	/**
-	 * Lista produtos
+	 * Lists products
 	 */
-	abstract list(): Promise<Product[]>;
+	list(): Promise<Product[]>;
 
 	/**
-	 * Obtém produto por ID
+	 * Gets product by ID
 	 */
-	abstract getById(id: string): Promise<Product | null>;
+	getById(id: string): Promise<Product | null>;
 }

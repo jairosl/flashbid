@@ -16,12 +16,4 @@ export const schema = {
 	auction,
 };
 
-export {
-	user,
-	session,
-	account,
-	verification,
-	image,
-	product,
-	auction,
-};
+export { user, session, account, verification, image, product, auction };

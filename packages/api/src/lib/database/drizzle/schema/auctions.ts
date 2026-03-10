@@ -45,16 +45,12 @@ export const auction = pgTable(
 			scale: 2,
 		}), // Opcional: preço pra levar na hora
 
-		status: auctionStatusEnum('status')
-			.default('PENDING')
-			.notNull(),
+		status: auctionStatusEnum('status').default('PENDING').notNull(),
 
 		startsAt: timestamp('starts_at').notNull(),
 		endsAt: timestamp('ends_at').notNull(),
 
-		createdAt: timestamp('created_at')
-			.defaultNow()
-			.notNull(),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
 		updatedAt: timestamp('updated_at')
 			.$onUpdate(() => /* @__PURE__ */ new Date())
 			.notNull(),
@@ -65,13 +61,10 @@ export const auction = pgTable(
 	],
 );
 
-export const auctionsRelations = relations(
-	auction,
-	({ one, many }) => ({
-		product: one(product, {
-			fields: [auction.productId],
-			references: [product.id],
-		}),
-		bid: many(bid),
+export const auctionsRelations = relations(auction, ({ one, many }) => ({
+	product: one(product, {
+		fields: [auction.productId],
+		references: [product.id],
 	}),
-);
+	bid: many(bid),
+}));

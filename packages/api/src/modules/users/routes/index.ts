@@ -1,8 +1,10 @@
 import { Elysia } from 'elysia';
+import { container } from '@/lib/di/container';
+import { TYPES } from '@/lib/di/types';
 import { authPlugin } from '@/lib/http/plugins';
-import { UsersController } from '../controllers';
+import type { UsersController } from '../controllers';
 
-const controller = new UsersController();
+const controller = container.get<UsersController>(TYPES.UsersController);
 
 export const usersRoutes = new Elysia({
 	prefix: 'users',
@@ -16,4 +18,3 @@ export const usersRoutes = new Elysia({
 			description: 'Retorna os dados do usuário logado',
 		},
 	});
-

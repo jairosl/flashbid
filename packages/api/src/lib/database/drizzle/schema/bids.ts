@@ -1,12 +1,6 @@
 import { randomUUIDv7 } from 'bun';
 import { relations } from 'drizzle-orm';
-import {
-	decimal,
-	index,
-	pgTable,
-	timestamp,
-	uuid,
-} from 'drizzle-orm/pg-core';
+import { decimal, index, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { auction } from './auctions';
 
 export const bid = pgTable(
@@ -26,9 +20,7 @@ export const bid = pgTable(
 			precision: 10,
 			scale: 2,
 		}).notNull(),
-		createdAt: timestamp('created_at')
-			.defaultNow()
-			.notNull(),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
 		updatedAt: timestamp('updated_at')
 			.$onUpdate(() => /* @__PURE__ */ new Date())
 			.notNull(),

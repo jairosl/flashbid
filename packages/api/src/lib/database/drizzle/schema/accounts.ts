@@ -1,11 +1,5 @@
 import { randomUUIDv7 } from 'bun';
-import {
-	index,
-	pgTable,
-	text,
-	timestamp,
-	uuid,
-} from 'drizzle-orm/pg-core';
+import { index, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { user } from './users';
 
 export const account = pgTable(
@@ -22,17 +16,11 @@ export const account = pgTable(
 		accessToken: text('access_token'),
 		refreshToken: text('refresh_token'),
 		idToken: text('id_token'),
-		accessTokenExpiresAt: timestamp(
-			'access_token_expires_at',
-		),
-		refreshTokenExpiresAt: timestamp(
-			'refresh_token_expires_at',
-		),
+		accessTokenExpiresAt: timestamp('access_token_expires_at'),
+		refreshTokenExpiresAt: timestamp('refresh_token_expires_at'),
 		scope: text('scope'),
 		password: text('password'),
-		createdAt: timestamp('created_at')
-			.defaultNow()
-			.notNull(),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
 		updatedAt: timestamp('updated_at')
 			.$onUpdate(() => /* @__PURE__ */ new Date())
 			.notNull(),

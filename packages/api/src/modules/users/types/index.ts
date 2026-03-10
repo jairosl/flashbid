@@ -10,4 +10,3 @@ export interface UserProfile {
 	createdAt: Date;
 	updatedAt: Date;
 }
-

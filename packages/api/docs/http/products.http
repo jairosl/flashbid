@@ -1,0 +1,36 @@
+### List all products
+GET {{baseUrl}}/products HTTP/1.1
+Authorization: Bearer {{authToken}}
+
+### Get product by ID
+GET {{baseUrl}}/products/{{productId}} HTTP/1.1
+Authorization: Bearer {{authToken}}
+
+### Create a new product (with Image)
+# Note: A user can only have a maximum of 5 products registered.
+# Use multipart/form-data for file uploads
+POST {{baseUrl}}/products HTTP/1.1
+Authorization: Bearer {{authToken}}
+Cookie: {{authCookies}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="name"
+
+Vintage Watch
+--WebAppBoundary
+Content-Disposition: form-data; name="description"
+
+A beautiful vintage watch from the 70s
+--WebAppBoundary
+Content-Disposition: form-data; name="image"; filename="watch.jpg"
+Content-Type: image/jpeg
+
+< ../assets/sample.jpg
+--WebAppBoundary--
+
+> {%
+  if (response.status === 201 || response.status === 200) {
+    client.global.set("productId", response.body.data.id);
+  }
+%}

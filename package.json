@@ -6,8 +6,21 @@
 	"workspaces": [
 		"packages/*"
 	],
+	"scripts": {
+		"test": "vitest",
+		"test:api": "vitest --project api",
+		"test:web": "vitest --project web",
+		"test:coverage": "vitest --coverage",
+		"lint": "bun x @biomejs/biome check .",
+		"lint:fix": "bun x @biomejs/biome check --write --unsafe .",
+		"format": "bun x @biomejs/biome format .",
+		"format:fix": "bun x @biomejs/biome format --write ."
+	},
 	"devDependencies": {
-		"@types/bun": "latest"
+		"@types/bun": "latest",
+		"@vitest/coverage-v8": "^4.0.18",
+		"vite-tsconfig-paths": "^6.1.1",
+		"vitest": "^4.0.18"
 	},
 	"peerDependencies": {
 		"typescript": "^5"

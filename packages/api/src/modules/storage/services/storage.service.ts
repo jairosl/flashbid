@@ -2,14 +2,14 @@ import type { UploadFileResponseDto } from '../dto';
 import type { UploadOptions } from '../types';
 
 /**
- * Abstract Storage Service
+ * Contrato do Storage Service
  * Permite trocar implementação (Supabase, S3, Cloudinary, etc) facilmente
  */
-export abstract class StorageService {
+export interface StorageService {
 	/**
 	 * Faz upload de um arquivo
 	 */
-	abstract uploadFile(
+	uploadFile(
 		file: File | Blob,
 		options?: UploadOptions,
 	): Promise<UploadFileResponseDto>;
@@ -17,17 +17,22 @@ export abstract class StorageService {
 	/**
 	 * Deleta um arquivo
 	 */
-	abstract deleteFile(imageId: string, ownerId: string): Promise<void>;
+	deleteFile(imageId: string, ownerId: string): Promise<void>;
 
 	/**
 	 * Obtém URL pública de um arquivo
 	 */
-	abstract getPublicUrl(filePath: string): string;
+	getPublicUrl(filePath: string): string;
+}
 
+/**
+ * Helper com métodos estáticos utilitários de storage
+ */
+export class StorageUtils {
 	/**
 	 * Extrai extensão do arquivo
 	 */
-	protected getFileExtension(file: File | Blob): string {
+	static getFileExtension(file: File | Blob): string {
 		if (file instanceof File && file.name) {
 			const parts = file.name.split('.');
 			return parts.length > 1 ? `.${parts.pop()}` : '';
@@ -42,7 +47,7 @@ export abstract class StorageService {
 	/**
 	 * Obtém content type do arquivo
 	 */
-	protected getContentType(file: File | Blob): string {
+	static getContentType(file: File | Blob): string {
 		return file.type || 'application/octet-stream';
 	}
 }

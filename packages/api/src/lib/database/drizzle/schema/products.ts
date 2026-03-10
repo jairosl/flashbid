@@ -1,11 +1,6 @@
 import { randomUUIDv7 } from 'bun';
 import { relations } from 'drizzle-orm';
-import {
-	pgTable,
-	text,
-	timestamp,
-	uuid,
-} from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { auction } from './auctions';
 import { image } from './images';
 import { user } from './users';
@@ -26,17 +21,14 @@ export const product = pgTable('product', {
 		.notNull(),
 });
 
-export const productRelations = relations(
-	product,
-	({ one, many }) => ({
-		owner: one(user, {
-			fields: [product.ownerId],
-			references: [user.id],
-		}),
-		image: one(image, {
-			fields: [product.imageId],
-			references: [image.id],
-		}),
-		auctions: many(auction),
+export const productRelations = relations(product, ({ one, many }) => ({
+	owner: one(user, {
+		fields: [product.ownerId],
+		references: [user.id],
 	}),
-);
+	image: one(image, {
+		fields: [product.imageId],
+		references: [image.id],
+	}),
+	auctions: many(auction),
+}));

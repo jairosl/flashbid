@@ -1,3 +1,2 @@
 // Constantes compartilhadas
 export {};
-

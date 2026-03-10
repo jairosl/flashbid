@@ -12,4 +12,3 @@ export const updateProfileDto = t.Object({
 	name: t.Optional(t.String({ minLength: 2 })),
 	image: t.Optional(t.String()),
 });
-

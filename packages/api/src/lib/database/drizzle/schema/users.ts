@@ -1,12 +1,6 @@
 import { randomUUIDv7 } from 'bun';
 import { relations } from 'drizzle-orm';
-import {
-	boolean,
-	pgTable,
-	text,
-	timestamp,
-	uuid,
-} from 'drizzle-orm/pg-core';
+import { boolean, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { account } from './accounts';
 import { product } from './products';
 import { session } from './sessions';
@@ -17,9 +11,7 @@ export const user = pgTable('user', {
 		.$default(() => randomUUIDv7()),
 	name: text('name').notNull(),
 	email: text('email').notNull().unique(),
-	emailVerified: boolean('email_verified')
-		.default(false)
-		.notNull(),
+	emailVerified: boolean('email_verified').default(false).notNull(),
 	image: text('image'),
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at')
@@ -28,11 +20,8 @@ export const user = pgTable('user', {
 		.notNull(),
 });
 
-export const userRelations = relations(
-	user,
-	({ many }) => ({
-		sessions: many(session),
-		accounts: many(account),
-		products: many(product),
-	}),
-);
+export const userRelations = relations(user, ({ many }) => ({
+	sessions: many(session),
+	accounts: many(account),
+	products: many(product),
+}));

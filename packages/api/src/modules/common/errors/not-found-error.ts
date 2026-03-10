@@ -8,4 +8,3 @@ export class NotFoundError extends AppError {
 		super(message, 'NOT_FOUND', 404, details);
 	}
 }
-
