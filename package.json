@@ -1,11 +1,16 @@
 {
 	"name": "flashbid",
 	"module": "index.ts",
-	"type": "module",
+	"devDependencies": {
+		"@types/bun": "latest",
+		"@vitest/coverage-v8": "^4.0.18",
+		"vite-tsconfig-paths": "^6.1.1",
+		"vitest": "^4.0.18"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
 	"private": true,
-	"workspaces": [
-		"packages/*"
-	],
 	"scripts": {
 		"test": "vitest",
 		"test:api": "vitest --project api",
@@ -16,13 +21,11 @@
 		"format": "bun x @biomejs/biome format .",
 		"format:fix": "bun x @biomejs/biome format --write ."
 	},
-	"devDependencies": {
-		"@types/bun": "latest",
-		"@vitest/coverage-v8": "^4.0.18",
-		"vite-tsconfig-paths": "^6.1.1",
-		"vitest": "^4.0.18"
-	},
-	"peerDependencies": {
-		"typescript": "^5"
+	"type": "module",
+	"workspaces": [
+		"packages/*"
+	],
+	"dependencies": {
+		"@elysiajs/server-timing": "^1.4.0"
 	}
 }

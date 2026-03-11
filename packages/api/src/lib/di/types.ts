@@ -8,4 +8,7 @@ export const TYPES = {
 	ImagesRepository: Symbol.for('ImagesRepository'),
 	AuthService: Symbol.for('AuthService'),
 	SupabaseClient: Symbol.for('SupabaseClient'),
+	AuctionsService: Symbol.for('AuctionsService'),
+	AuctionsController: Symbol.for('AuctionsController'),
+	AuctionsRepository: Symbol.for('AuctionsRepository'),
 };

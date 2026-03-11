@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: default type by request */
 export interface AuthenticatedUser {
 	id: string;
 	[key: string]: unknown;
@@ -5,7 +6,12 @@ export interface AuthenticatedUser {
 
 export interface ApiResponse<T> {
 	success: boolean;
-	data: T;
+	data?: T;
+	error?: {
+		code: string;
+		message: string;
+		details?: unknown;
+	};
 }
 
 export interface BaseRequest<TBody = any, TParams = any, TQuery = any> {

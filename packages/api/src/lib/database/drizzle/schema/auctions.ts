@@ -10,6 +10,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { bid } from './bids';
 import { product } from './products';
+import { user } from './users';
 
 export const auctionStatusEnum = pgEnum('auction_status', [
 	'PENDING',
@@ -28,7 +29,9 @@ export const auction = pgTable(
 			.notNull()
 			.references(() => product.id),
 
-		sellerId: uuid('product_id').notNull(),
+		sellerId: uuid('seller_id')
+			.notNull()
+			.references(() => user.id),
 
 		startPrice: decimal('start_price', {
 			precision: 10,
@@ -65,6 +68,10 @@ export const auctionsRelations = relations(auction, ({ one, many }) => ({
 	product: one(product, {
 		fields: [auction.productId],
 		references: [product.id],
+	}),
+	seller: one(user, {
+		fields: [auction.sellerId],
+		references: [user.id],
 	}),
 	bid: many(bid),
 }));

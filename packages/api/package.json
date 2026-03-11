@@ -3,9 +3,7 @@
 	"version": "1.0.50",
 	"scripts": {
 		"dev": "bun run --watch src/index.ts",
-		"build": "bun build src/index.ts --outdir dist --target bun",
-		"build:prod": "bun build src/index.ts --outdir dist --target bun --minify --sourcemap",
-		"build:bin": "bun build src/index.ts --compile --minify --sourcemap --outfile dist/api",
+		"build": "bun run scripts/build.ts",
 		"start": "bun run dist/index.js",
 		"db:generate": "bun --env-file .env --bun drizzle-kit generate",
 		"db:migrate": "bun --env-file .env --bun drizzle-kit migrate",
@@ -14,6 +12,7 @@
 	"dependencies": {
 		"@elysiajs/cors": "^1.4.1",
 		"@elysiajs/openapi": "^1.4.14",
+		"@elysiajs/server-timing": "^1.4.0",
 		"@supabase/supabase-js": "^2.95.3",
 		"better-auth": "^1.4.17",
 		"dotenv": "^17.2.3",

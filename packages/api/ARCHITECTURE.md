@@ -59,7 +59,7 @@ Responsible for defining endpoints and runtime validation.
 
 Always prefer using shared types from `@/modules/common/types`:
 
-- `ApiResponse<T>`: Standard response wrapper `{ success: boolean, data: T }`.
+- `ApiResponse<T>`: Standard response wrapper `{ success: boolean, data?: T, error?: { code: string, message: string, details?: any } }`.
 - `AuthenticatedRequest<TBody, TParams>`: Request context with authenticated `user`.
 - `BaseRequest<TBody, TParams>`: Request context without authentication.
 
@@ -115,7 +115,24 @@ import 'reflect-metadata';
 
 ---
 
-## 6. Linter & Formatting
+## 6. HTTP Documentation & Manual Testing
+
+We use `.http` files (compatible with REST Client/IntelliJ/VS Code) for documentation and manual verification.
+
+- **Location**: `docs/http/*.http`
+- **Environment**: Variables are defined in `docs/http-client.env.json`.
+- **Chaining Requests**: Use scripts to capture IDs and tokens to be used in subsequent requests:
+  ```http
+  > {%
+    if (response.status === 201 || response.status === 200) {
+      client.global.set("productId", response.body.data.id);
+    }
+  %}
+  ```
+
+---
+
+## 7. Linter & Formatting
 We use **Biome**.
 - Use `bun run lint:fix` to fix common issues.
 - Do not disable rules; use `overrides` in `biome.json` if a specific directory (like API with decorators) needs special treatment.

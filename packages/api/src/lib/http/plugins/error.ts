@@ -1,14 +1,19 @@
 import { Elysia } from 'elysia';
 import { AppError } from '@/modules/common/errors';
+import type { ApiResponse } from '@/modules/common/types';
 
 export const errorPlugin = new Elysia({
 	name: 'error-plugin',
-}).onError(({ error, set }) => {
+}).onError(({ error, set }): ApiResponse<never> => {
 	if (error instanceof AppError) {
 		set.status = error.statusCode;
 		return {
-			code: error.code,
-			message: error.message,
+			success: false,
+			error: {
+				code: error.code,
+				message: error.message,
+				details: error.details,
+			},
 		};
 	}
 
@@ -21,14 +26,20 @@ export const errorPlugin = new Elysia({
 	if (anyError?.code && anyError?.status) {
 		set.status = anyError.status;
 		return {
-			code: anyError.code,
-			message: anyError.message ?? String(error),
+			success: false,
+			error: {
+				code: anyError.code,
+				message: anyError.message ?? String(error),
+			},
 		};
 	}
 
 	set.status = 500;
 	return {
-		code: 'INTERNAL_SERVER_ERROR',
-		message: 'Internal server error',
+		success: false,
+		error: {
+			code: 'INTERNAL_SERVER_ERROR',
+			message: 'Internal server error',
+		},
 	};
 });

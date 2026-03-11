@@ -1,130 +1,99 @@
-# FlashBid API
+# ⚡ FlashBid API | High-Performance Auction Engine
 
-API backend do FlashBid, plataforma focada em fluxos de produtos e leilões.
+A **FlashBid API** é o motor de alta performance por trás da plataforma FlashBid, construída com foco em escalabilidade, desacoplamento e princípios sólidos de engenharia de software. Este projeto consolida conhecimentos avançados em arquitetura de sistemas, design de APIs e práticas de desenvolvimento moderno.
 
-Este pacote entrega autenticação, contexto de usuário, operações de produto e storage de mídia, com arquitetura preparada para evoluir sem acoplamento excessivo.
+---
 
-## Overview
-A API foi estruturada para resolver problemas de engenharia de software além da implementação de endpoints:
+## 🏗️ Arquitetura e Design Patterns
 
-- isolar comportamento de negócio de framework/provedor
-- reduzir acoplamento com serviços externos (auth/storage/database)
-- permitir evolução incremental sem refatoração massiva
+A API foi desenhada seguindo o padrão **Clean Architecture** adaptado para um modelo de módulos, garantindo que a lógica de negócio seja independente de frameworks e provedores externos.
 
-Para detalhes de camadas, contratos e convenções arquiteturais:
+### Camadas do Sistema:
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md)
+- **Routes (Entry Point)**: Definição de endpoints usando Elysia e validação rigorosa com TypeBox.
+- **Controllers (HTTP Bridge)**: Orquestração de requisições, mapeamento de DTOs e coordenação via DI.
+- **Services (Business Logic)**: Onde reside o "coração" do sistema. Validações de domínio, regras de negócio e integração entre serviços.
+- **Repositories (Data Access)**: Abstração da camada de persistência usando Drizzle ORM, permitindo trocar o banco de dados com impacto mínimo.
 
-## Tech Stack
+### Principais Padrões Aplicados:
 
-- Runtime: Bun
-- Framework HTTP: Elysia
-- Autenticação: Better Auth
-- Banco de dados: PostgreSQL
-- ORM: Drizzle ORM
-- Storage de objetos: Supabase Storage
-- Documentação de API: OpenAPI com `@elysiajs/openapi`
-- Infra local: Docker Compose (PostgreSQL + Redis)
+- **Dependency Injection (DI)**: Utilização do **InversifyJS** para inversão de controle, facilitando a testabilidade e o baixo acoplamento.
+- **Singleton Pattern**: Gerenciamento eficiente de instâncias de serviços e conexões.
+- **Repository Pattern**: Isolamento total das consultas SQL da lógica de negócio.
+- **Standardized Response**: Todas as respostas seguem o contrato `ApiResponse<T>`, garantindo consistência para o Front-end:
+  ```typescript
+  {
+    success: boolean;
+    data?: T;
+    error?: { code: string; message: string; details?: any }
+  }
+  ```
 
-## Decisões de Engenharia (Alto Nível)
+---
 
-### 1. Desacoplamento de provedores por contrato
-Problema:
-Trocar provedor (por exemplo storage) pode causar refatoração em cadeia.
+## 🛠️ Tech Stack & Ferramentas
 
-Solução:
-Módulos usam contrato abstrato de service + implementação concreta + factory. O módulo `storage` é a referência atual.
+- **Runtime**: [Bun](https://bun.sh/) (Performance extrema e ferramentas integradas)
+- **Framework**: [ElysiaJS](https://elysiajs.com/) (Type-safe, focado em performance)
+- **DI Container**: [InversifyJS](https://inversify.io/)
+- **ORM**: [Drizzle ORM](https://orm.drizzle.team/) (Type-safe SQL)
+- **Database**: PostgreSQL (Persistência) & Redis (Cache/Queues)
+- **Auth**: [Better Auth](https://www.better-auth.com/) (Framework de autenticação moderno)
+- **Storage**: Supabase Storage (Gerenciamento de mídia)
+- **Validation**: TypeBox (Validação em tempo de execução e inferência de tipos)
 
-### 2. Consistência e segurança na borda do sistema
-Problema:
-Validação inconsistente e erros não normalizados causam instabilidade em produção.
+---
 
-Solução:
-Validação na borda via DTO/route, normalização de erros em camada compartilhada e contexto de autenticação resolvido por plugin/macro antes dos handlers protegidos.
+## ✅ Engenharia de Qualidade & Testes
 
-### 3. Infra pronta para processamento assíncrono
-Problema:
-Parte dos workloads tende a ser assíncrona (notificações, pós-processamento, jobs).
+A confiabilidade do sistema é garantida por uma estratégia de testes rigorosa utilizando **Vitest**:
 
-Solução:
-A infra local já provisiona Redis para suportar workloads com fila na evolução da aplicação, sem quebrar contratos HTTP atuais.
-
-## Módulos Atuais
-
-- `auth`: integração Better Auth e endpoints de autenticação
-- `users`: dados do usuário autenticado
-- `products`: criação de produto (em evolução)
-- `storage`: upload/remoção de imagem com validação de ownership
-
-## Como Rodar
-
-### Pré-requisitos
-
-- Bun instalado
-- Docker + Docker Compose instalados
-
-### 1. Instalar dependências
+- **Layer Isolation**: Cada camada é testada isoladamente através de mocks de suas dependências.
+- **Business Logic Coverage**: 100% de cobertura nas regras críticas de leilão (ex: impedir múltiplos leilões ativos para o mesmo produto).
+- **Mocking Strategy**: Uso intensivo de DI para injetar mocks em ambiente de teste, garantindo que os testes não dependam de infraestrutura real.
 
 ```bash
-bun install
+# Executar todos os testes da API
+bun run test:api
 ```
 
-### 2. Configurar ambiente
+---
 
-```bash
-cp .env.example .env
-```
+## 🚀 Performance & Build
 
-Preencha as variáveis obrigatórias no `.env` (database, auth e storage).
+Para produção, a API utiliza um processo de build customizado (`scripts/build.ts`) que:
 
-### 3. Subir infraestrutura
+1.  Realiza **Tree-shaking** e **Minificação** agressiva.
+2.  Gera um **Binário Standalone** otimizado, eliminando a necessidade de instalar o Bun no ambiente de execução.
+3.  Otimiza o startup time e reduz o footprint de memória.
 
-```bash
-docker-compose up -d
-```
+---
 
-Serviços locais:
+## 📖 Documentação da API
 
-- PostgreSQL em `localhost:5434`
-- Redis em `localhost:6378`
+A API é auto-documentada e fácil de explorar:
 
-### 4. Executar migrações
+- **Swagger/OpenAPI**: Disponível em `/openapi` quando o servidor está rodando.
+- **HTTP Client Files**: Localizados em `docs/http/*.http`, permitem testar fluxos completos (Auth -> Product -> Auction) diretamente do VS Code ou IntelliJ.
 
-```bash
-bun run db:generate
-bun run db:migrate
-```
+---
 
-### 5. Iniciar API
+## 🛠️ Como Executar
 
-```bash
-bun run dev
-```
+1.  **Instalação**: `bun install`
+2.  **Infra**: `docker-compose up -d` (PostgreSQL + Redis)
+3.  **Ambiente**: `cp .env.example .env` (Configure suas credenciais)
+4.  **Database**: `bun run db:generate && bun run db:migrate`
+5.  **Run**: `bun run dev`
 
-URL padrão: `http://localhost:8080`
+---
 
-## Documentação e Exploração da API
+## 📈 Próximos Passos
 
-- OpenAPI UI: `http://localhost:8080/openapi`
-- Exemplos HTTP:
-  - `docs/http/auth.http`
-  - `docs/http/storage.http`
-- Variáveis do HTTP Client:
-  - `docs/http-client.env.json`
+- Implementação de **WebSockets** para lances em tempo real.
+- Processamento de filas assíncronas com Redis para finalização automática de leilões.
+- Observabilidade avançada com OpenTelemetry.
 
-## Scripts Úteis
+---
 
-```bash
-bun run dev
-bun run build
-bun run build:prod
-bun run db:generate
-bun run db:migrate
-bun run db:studio
-```
-
-## Evolução Técnica
-
-- A arquitetura é incremental: manter simples onde ainda é simples.
-- Com aumento de complexidade, a base permite evoluir para use-cases explícitos, workers com fila e observabilidade mais forte.
-- O foco é decisão de engenharia sustentável, não acoplamento ao framework.
+_Desenvolvido como um projeto de consolidação técnica em Engenharia de Software._

@@ -1,5 +1,11 @@
 import 'reflect-metadata';
 import { Container } from 'inversify';
+// Auctions Module
+import { AuctionsController } from '@/modules/auctions/controllers';
+import type { AuctionsRepository } from '@/modules/auctions/repositories/auctions.repository';
+import { DrizzleAuctionsRepository } from '@/modules/auctions/repositories/drizzle-auctions.repository';
+import type { AuctionsService } from '@/modules/auctions/services/auctions.service';
+import { AuctionsDbService } from '@/modules/auctions/services/auctions-db.service';
 import type { AuthService } from '@/modules/auth/services/auth.service';
 
 // Auth Module
@@ -39,6 +45,20 @@ container
 container
 	.bind<UsersController>(TYPES.UsersController)
 	.to(UsersController)
+	.inSingletonScope();
+
+// Auctions Bindings
+container
+	.bind<AuctionsService>(TYPES.AuctionsService)
+	.to(AuctionsDbService)
+	.inSingletonScope();
+container
+	.bind<AuctionsController>(TYPES.AuctionsController)
+	.to(AuctionsController)
+	.inSingletonScope();
+container
+	.bind<AuctionsRepository>(TYPES.AuctionsRepository)
+	.to(DrizzleAuctionsRepository)
 	.inSingletonScope();
 
 // Products Bindings
