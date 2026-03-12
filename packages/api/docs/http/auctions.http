@@ -1,22 +1,26 @@
 ### List all auctions
+
 GET {{baseUrl}}/auctions HTTP/1.1
 Authorization: Bearer {{authToken}}
 
+
 ### Create a new auction
+
 # Note: You must have a valid productId (from products.http)
 # and own the product to create an auction.
+
 POST {{baseUrl}}/auctions HTTP/1.1
 Authorization: Bearer {{authToken}}
 Cookie: {{authCookies}}
 Content-Type: application/json
 
 {
+  "buyNowPrice": 1000.00,
+  "endsAt": "2026-03-27T10:00:00.000Z",
+  "minStep": 5.00,
   "productId": "{{productId}}",
   "startPrice": 150.00,
-  "minStep": 5.00,
-  "buyNowPrice": 1000.00,
-  "startsAt": "2026-03-20T10:00:00.000Z",
-  "endsAt": "2026-03-27T10:00:00.000Z"
+  "startsAt": "2026-03-20T10:00:00.000Z"
 }
 
 > {%

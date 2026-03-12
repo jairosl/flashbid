@@ -132,7 +132,28 @@ We use `.http` files (compatible with REST Client/IntelliJ/VS Code) for document
 
 ---
 
-## 7. Linter & Formatting
-We use **Biome**.
-- Use `bun run lint:fix` to fix common issues.
-- Do not disable rules; use `overrides` in `biome.json` if a specific directory (like API with decorators) needs special treatment.
+## 8. Dependency Injection & Circular Dependencies
+
+Para evitar erros de inicialização (`ReferenceError: Cannot access 'container' before initialization`), seguimos regras estritas sobre como as dependências são importadas no container de DI.
+
+### O Problema dos "Barrel Files" (`index.ts`)
+O uso de arquivos `index.ts` para exportar tudo de um módulo é prático, mas perigoso para o Container de DI. Se um `index.ts` exporta uma **Rota** que depende do `container`, e o `container` tenta importar um **Service** através desse mesmo `index.ts`, cria-se um ciclo vicioso onde o container tenta carregar a si mesmo antes de terminar sua inicialização.
+
+### Boa Prática: Imports Diretos no Container
+Sempre importe as implementações concretas (Services, Repositories) **diretamente de seus arquivos de origem** dentro de `src/lib/di/container.ts`. Nunca use o `index.ts` do módulo neste arquivo.
+
+#### ❌ Incorreto (Causa Dependência Circular)
+```typescript
+// src/lib/di/container.ts
+import { UsersDbService } from '@/modules/users'; // Importa index.ts -> carrega routes -> pede o container (Erro!)
+```
+
+#### ✅ Correto (Seguro)
+```typescript
+// src/lib/di/container.ts
+import { UsersDbService } from '@/modules/users/services/users-db.service'; // Import direto do arquivo
+```
+
+### Padrão para Loggers e Utilitários
+Para preocupações transversais (*cross-cutting concerns*) como o **Logger**, preferimos o padrão **Singleton** exportado de `@/lib/logger` em vez de Injeção de Dependência. 
+- **Por que?** Evita poluir todos os construtores do sistema e simplifica os testes unitários, pois o Logger Singleton pode se silenciar automaticamente em ambiente de teste sem necessidade de mocks manuais em cada arquivo `.spec.ts`.

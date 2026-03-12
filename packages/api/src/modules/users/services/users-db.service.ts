@@ -1,8 +1,9 @@
 import { eq } from 'drizzle-orm';
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { db } from '@/lib/database/drizzle/client';
 import { user } from '@/lib/database/drizzle/schema';
 import { NotFoundError } from '@/modules/common/errors';
+import { logger } from '@/lib/logger';
 import type { UserProfile } from '../types';
 import type { UsersService } from './users.service';
 
@@ -25,6 +26,8 @@ export class UsersDbService implements UsersService {
 		userId: string,
 		data: Partial<UserProfile>,
 	): Promise<UserProfile> {
+		logger.debug('Updating user profile', { userId });
+
 		const [updated] = await db
 			.update(user)
 			.set({
@@ -35,8 +38,11 @@ export class UsersDbService implements UsersService {
 			.returning();
 
 		if (!updated) {
+			logger.warn('User not found for profile update', { userId });
 			throw new NotFoundError('User not found');
 		}
+
+		logger.info('User profile updated successfully', { userId });
 
 		return updated as UserProfile;
 	}

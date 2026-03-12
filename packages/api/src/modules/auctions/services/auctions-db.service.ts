@@ -1,5 +1,6 @@
 import { inject, injectable } from 'inversify';
 import { TYPES } from '@/lib/di/types';
+import { logger } from '@/lib/logger';
 import type { ProductsService } from '@/modules/products/services/products.service';
 import { AuctionsError } from '../errors/auctions-error';
 import type { AuctionsRepository } from '../repositories';
@@ -16,14 +17,26 @@ export class AuctionsDbService implements AuctionsService {
 	) {}
 
 	async create(sellerId: string, data: CreateAuctionData): Promise<Auction> {
+		logger.info('Creating auction', {
+			sellerId,
+			productId: data.productId,
+		});
+
 		// 1. Verify if product exists
 		const product = await this.productsService.getById(data.productId);
 		if (!product) {
+			logger.warn('Product not found for auction creation', {
+				productId: data.productId,
+			});
 			throw new AuctionsError('Product not found', 'PRODUCT_NOT_FOUND', 404);
 		}
 
 		// 2. Verify if seller owns the product
 		if (product.ownerId !== sellerId) {
+			logger.warn('Unauthorized seller attempt', {
+				sellerId,
+				productOwnerId: product.ownerId,
+			});
 			throw new AuctionsError(
 				'You do not own this product',
 				'UNAUTHORIZED_SELLER',
@@ -37,6 +50,9 @@ export class AuctionsDbService implements AuctionsService {
 		);
 
 		if (activeAuction) {
+			logger.warn('Active auction already exists', {
+				productId: data.productId,
+			});
 			throw new AuctionsError(
 				'There is already an active or pending auction for this product',
 				'ACTIVE_AUCTION_EXISTS',
@@ -46,6 +62,10 @@ export class AuctionsDbService implements AuctionsService {
 
 		// 4. Verify dates
 		if (data.startsAt >= data.endsAt) {
+			logger.warn('Invalid auction dates', {
+				startsAt: data.startsAt,
+				endsAt: data.endsAt,
+			});
 			throw new AuctionsError(
 				'Start date must be before end date',
 				'INVALID_DATES',
@@ -53,6 +73,10 @@ export class AuctionsDbService implements AuctionsService {
 			);
 		}
 
+		logger.info('Auction created successfully', {
+			sellerId,
+			productId: data.productId,
+		});
 		return this.auctionsRepository.create(sellerId, data);
 	}
 

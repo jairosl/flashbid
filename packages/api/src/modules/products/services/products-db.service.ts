@@ -1,5 +1,6 @@
 import { inject, injectable } from 'inversify';
 import { TYPES } from '@/lib/di/types';
+import { logger } from '@/lib/logger';
 import type { StorageService } from '@/modules/storage/services/storage.service';
 import { ProductsError } from '../errors/products-error';
 import type { ProductsRepository } from '../repositories/products.repository';
@@ -21,11 +22,17 @@ export class ProductsDbService implements ProductsService {
 	) {}
 
 	async create(ownerId: string, data: CreateProductData): Promise<Product> {
+		logger.debug('Attempting to create product', { ownerId, name: data.name });
+
 		// Check user's product count
 		const userProductsCount =
 			await this.productsRepository.countByOwnerId(ownerId);
 
 		if (userProductsCount >= this.MAX_PRODUCTS_PER_USER) {
+			logger.warn('Product limit reached for user', {
+				ownerId,
+				count: userProductsCount,
+			});
 			throw new ProductsError(
 				`Maximum product limit (${this.MAX_PRODUCTS_PER_USER}) reached`,
 				'PRODUCT_LIMIT_REACHED',
@@ -37,17 +44,25 @@ export class ProductsDbService implements ProductsService {
 
 		// Handle image upload if present
 		if (data.image) {
+			logger.debug('Uploading image for new product', { ownerId });
 			const uploadResult = await this.storageService.uploadFile(data.image, {
 				ownerId,
 			});
 			imageId = uploadResult.imageId;
 		}
 
-		return this.productsRepository.create(ownerId, {
+		const product = await this.productsRepository.create(ownerId, {
 			name: data.name,
 			description: data.description,
 			imageId,
 		});
+
+		logger.info('Product created successfully', {
+			productId: product.id,
+			ownerId,
+		});
+
+		return product;
 	}
 
 	async list(): Promise<Product[]> {

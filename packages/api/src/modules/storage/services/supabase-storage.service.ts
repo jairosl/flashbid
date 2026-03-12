@@ -3,6 +3,7 @@ import { randomUUIDv7 } from 'bun';
 import { inject, injectable } from 'inversify';
 import { TYPES } from '@/lib/di/types';
 import { StorageError } from '@/modules/common/errors';
+import { logger } from '@/lib/logger';
 import { STORAGE_BUCKET } from '../client';
 import type { UploadFileResponseDto } from '../dto';
 import type { ImagesRepository } from '../repositories';
@@ -26,6 +27,7 @@ export class SupabaseStorageService implements StorageService {
 		options: UploadOptions = {},
 	): Promise<UploadFileResponseDto> {
 		if (!options.ownerId) {
+			logger.warn('Attempted file upload without ownerId');
 			throw new StorageError(
 				'Missing ownerId for image persistence',
 				'OWNER_ID_REQUIRED',
@@ -41,6 +43,12 @@ export class SupabaseStorageService implements StorageService {
 		const folder = options.folder || 'uploads';
 		const filePath = `${folder}/${uniqueFileName}`;
 
+		logger.debug('Uploading file to Supabase Storage', {
+			filePath,
+			size: file.size,
+			ownerId: options.ownerId,
+		});
+
 		// Upload para Supabase
 		const { data, error } = await this.supabase.storage
 			.from(STORAGE_BUCKET)
@@ -50,6 +58,11 @@ export class SupabaseStorageService implements StorageService {
 			});
 
 		if (error) {
+			logger.error('Failed to upload file to Supabase', {
+				error: error.message,
+				filePath,
+				ownerId: options.ownerId,
+			});
 			throw new StorageError(
 				`Failed to upload file: ${error.message}`,
 				'UPLOAD_FAILED',
@@ -70,6 +83,12 @@ export class SupabaseStorageService implements StorageService {
 			ownerId: options.ownerId,
 		});
 
+		logger.info('File uploaded and record created', {
+			imageId: imageRecord.id,
+			ownerId: options.ownerId,
+			path: data.path,
+		});
+
 		return {
 			url: urlData.publicUrl,
 			path: data.path,
@@ -85,6 +104,7 @@ export class SupabaseStorageService implements StorageService {
 		);
 
 		if (!imageRecord) {
+			logger.warn('Image not found for deletion', { imageId, ownerId });
 			throw new StorageError('Image not found', 'IMAGE_NOT_FOUND', 404);
 		}
 
@@ -93,6 +113,11 @@ export class SupabaseStorageService implements StorageService {
 			.remove([imageRecord.url]);
 
 		if (error) {
+			logger.error('Failed to delete file from Supabase', {
+				error: error.message,
+				imageId,
+				path: imageRecord.url,
+			});
 			throw new StorageError(
 				`Failed to delete file: ${error.message}`,
 				'DELETE_FAILED',
@@ -102,6 +127,7 @@ export class SupabaseStorageService implements StorageService {
 		}
 
 		await this.imagesRepository.delete(imageId);
+		logger.info('File and record deleted successfully', { imageId, ownerId });
 	}
 
 	getPublicUrl(filePath: string): string {
