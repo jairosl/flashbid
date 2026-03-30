@@ -1,11 +1,23 @@
+/** biome-ignore-all assist/source/organizeImports: Organized by module */
 import 'reflect-metadata';
 import { Container } from 'inversify';
+
+// Infrastructure Bindings
+import { redis } from '@/lib/redis';
+import { AuctionScripts } from '@/lib/redis/auction-scripts';
+import { auctionQueue } from '@/lib/queue/client';
+
 // Auctions Module
-import { AuctionsController } from '@/modules/auctions/controllers';
+import {
+	AuctionsController,
+	BidsController,
+} from '@/modules/auctions/controllers';
 import { DrizzleAuctionsRepository } from '@/modules/auctions/repositories/drizzle-auctions.repository';
 import type { AuctionsRepository } from '@/modules/auctions/repositories/auctions.repository';
 import { AuctionsDbService } from '@/modules/auctions/services/auctions-db.service';
 import type { AuctionsService } from '@/modules/auctions/services/auctions.service';
+import { BidsServiceImpl } from '@/modules/auctions/services/bids.service';
+import type { BidsService } from '@/modules/auctions/services/bids.service';
 
 // Auth Module
 import { BetterAuthService } from '@/modules/auth/services/better-auth.service';
@@ -35,6 +47,9 @@ const container = new Container();
 
 // Infrastructure Bindings
 container.bind(TYPES.SupabaseClient).toConstantValue(supabase);
+container.bind(TYPES.Redis).toConstantValue(redis);
+container.bind(TYPES.AuctionQueue).toConstantValue(auctionQueue);
+container.bind(TYPES.AuctionScripts).toConstantValue(new AuctionScripts(redis));
 
 // Users Bindings
 container
@@ -58,6 +73,14 @@ container
 container
 	.bind<AuctionsRepository>(TYPES.AuctionsRepository)
 	.to(DrizzleAuctionsRepository)
+	.inSingletonScope();
+container
+	.bind<BidsService>(TYPES.BidsService)
+	.to(BidsServiceImpl)
+	.inSingletonScope();
+container
+	.bind<BidsController>(TYPES.BidsController)
+	.to(BidsController)
 	.inSingletonScope();
 
 // Products Bindings

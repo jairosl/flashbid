@@ -2,8 +2,8 @@ import { and, eq, or } from 'drizzle-orm';
 import { injectable } from 'inversify';
 import { db } from '@/lib/database/drizzle/client';
 import { auction } from '@/lib/database/drizzle/schema';
-import { AuctionStatus } from '../types';
 import type { Auction, CreateAuctionData } from '../types';
+import { AuctionStatus } from '../types';
 import type { AuctionsRepository } from './auctions.repository';
 
 @injectable()
@@ -51,5 +51,15 @@ export class DrizzleAuctionsRepository implements AuctionsRepository {
 			);
 
 		return (result as Auction) || null;
+	}
+
+	async update(id: string, data: Partial<Auction>): Promise<Auction | null> {
+		const [updated] = await db
+			.update(auction)
+			.set(data)
+			.where(eq(auction.id, id))
+			.returning();
+
+		return (updated as Auction) || null;
 	}
 }

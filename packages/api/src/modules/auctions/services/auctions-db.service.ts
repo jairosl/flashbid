@@ -1,6 +1,7 @@
 import { inject, injectable } from 'inversify';
 import { TYPES } from '@/lib/di/types';
 import { logger } from '@/lib/logger';
+import { auctionQueue } from '@/lib/queue/client';
 import type { ProductsService } from '@/modules/products/services/products.service';
 import { AuctionsError } from '../errors/auctions-error';
 import type { AuctionsRepository } from '../repositories';
@@ -73,11 +74,23 @@ export class AuctionsDbService implements AuctionsService {
 			);
 		}
 
-		logger.info('Auction created successfully', {
+		const auction = await this.auctionsRepository.create(sellerId, data);
+
+		// 5. Schedule activation job
+		const delay = Math.max(0, data.startsAt.getTime() - Date.now());
+		await auctionQueue.add(
+			'activate-auction',
+			{ auctionId: auction.id },
+			{ delay },
+		);
+
+		logger.info('Auction created successfully and scheduled for activation', {
 			sellerId,
 			productId: data.productId,
+			auctionId: auction.id,
+			delay,
 		});
-		return this.auctionsRepository.create(sellerId, data);
+		return auction;
 	}
 
 	async list(): Promise<Auction[]> {

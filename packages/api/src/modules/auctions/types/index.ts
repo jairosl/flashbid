@@ -22,6 +22,14 @@ export interface Auction {
 	updatedAt: Date;
 }
 
+export interface Bid {
+	id: string;
+	auctionId: string;
+	userId: string;
+	amount: number;
+	createdAt: number;
+}
+
 export interface CreateAuctionData {
 	productId: string;
 	startPrice: number;

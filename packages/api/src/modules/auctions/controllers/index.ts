@@ -4,6 +4,8 @@ import type { ApiResponse, AuthenticatedRequest } from '@/modules/common/types';
 import type { AuctionsService } from '../services/auctions.service';
 import type { Auction, CreateAuctionData } from '../types';
 
+export * from './bids.controller';
+
 @injectable()
 export class AuctionsController {
 	constructor(

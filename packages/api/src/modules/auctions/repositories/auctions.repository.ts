@@ -5,4 +5,5 @@ export interface AuctionsRepository {
 	findAll(): Promise<Auction[]>;
 	findById(id: string): Promise<Auction | null>;
 	findActiveByProductId(productId: string): Promise<Auction | null>;
+	update(id: string, data: Partial<Auction>): Promise<Auction | null>;
 }

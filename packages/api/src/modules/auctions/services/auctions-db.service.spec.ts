@@ -21,6 +21,7 @@ describe('AuctionsDbService', () => {
 			findAll: vi.fn(),
 			findById: vi.fn(),
 			findActiveByProductId: vi.fn(),
+			update: vi.fn(),
 		};
 
 		mockProductsService = {

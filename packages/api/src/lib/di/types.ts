@@ -11,4 +11,9 @@ export const TYPES = {
 	AuctionsService: Symbol.for('AuctionsService'),
 	AuctionsController: Symbol.for('AuctionsController'),
 	AuctionsRepository: Symbol.for('AuctionsRepository'),
+	Redis: Symbol.for('Redis'),
+	BidsService: Symbol.for('BidsService'),
+	BidsController: Symbol.for('BidsController'),
+	AuctionScripts: Symbol.for('AuctionScripts'),
+	AuctionQueue: Symbol.for('AuctionQueue'),
 };

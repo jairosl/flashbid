@@ -33,3 +33,10 @@ export const auctionResponseDto = t.Object({
 	createdAt: t.Union([t.Date(), t.String()]),
 	updatedAt: t.Union([t.Date(), t.String()]),
 });
+
+/**
+ * DTO para criar um lance
+ */
+export const createBidDto = t.Object({
+	amount: t.Number({ minimum: 0.01 }),
+});

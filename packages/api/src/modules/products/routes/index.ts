@@ -14,7 +14,7 @@ export const productsRoutes = new Elysia({
 	.get('/', controller.list, {
 		response: t.Object({
 			success: t.Boolean(),
-			data: t.Array(productResponseDto),
+			data: t.Optional(t.Array(productResponseDto)),
 		}),
 		detail: {
 			tags: ['Products'],
@@ -28,7 +28,7 @@ export const productsRoutes = new Elysia({
 		}),
 		response: t.Object({
 			success: t.Boolean(),
-			data: t.Nullable(productResponseDto),
+			data: t.Optional(t.Nullable(productResponseDto)),
 		}),
 		detail: {
 			tags: ['Products'],
@@ -41,7 +41,7 @@ export const productsRoutes = new Elysia({
 		body: createProductDto,
 		response: t.Object({
 			success: t.Boolean(),
-			data: productResponseDto,
+			data: t.Optional(productResponseDto),
 		}),
 		detail: {
 			tags: ['Products'],
